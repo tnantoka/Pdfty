@@ -83,6 +83,8 @@ public class PdftyView: UIView, UIScrollViewDelegate {
 
     let useImage = true
     
+    var locationInScrollView: CGPoint?
+
     public var page = 0 {
         didSet {
             guard page != oldValue else { return }
@@ -148,12 +150,7 @@ public class PdftyView: UIView, UIScrollViewDelegate {
         )
         self.addConstraints(vertical + horizontal)
         
-        let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(scrollViewDidDoubleTap))
-        doubleTapRecognizer.numberOfTapsRequired = 2
-        scrollView.addGestureRecognizer(doubleTapRecognizer)
-
         let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(scrollViewDidTap))
-        tapRecognizer.requireGestureRecognizerToFail(doubleTapRecognizer)
         scrollView.addGestureRecognizer(tapRecognizer)
 
         return scrollView
@@ -194,9 +191,20 @@ public class PdftyView: UIView, UIScrollViewDelegate {
     }
     
     func scrollViewDidTap(sender: UITapGestureRecognizer) {
+        if locationInScrollView == nil {
+            performSelector(#selector(scrollViewDidSingleTap), withObject: nil, afterDelay: 0.2)
+            locationInScrollView = sender.locationInView(self)
+        } else {
+            NSObject.cancelPreviousPerformRequestsWithTarget(self, selector: #selector(scrollViewDidSingleTap), object: nil)
+            scrollViewDidDoubleTap(sender)
+        }
+    }
+    
+    func scrollViewDidSingleTap(sender: UITapGestureRecognizer) {
         guard let pdfty = pdfty else { return }
-
-        let x = sender.locationInView(self).x
+        guard let locationInScrollView = locationInScrollView else { return }
+        
+        let x = locationInScrollView.x
         let width = CGRectGetWidth(bounds)
         let threshold: CGFloat = 0.15
         let prev = width * threshold
@@ -206,10 +214,14 @@ public class PdftyView: UIView, UIScrollViewDelegate {
         } else if x > next {
             page = min(page + 1, pdfty.numberOfPages - 1)
         }
+
+        self.locationInScrollView = nil
     }
     
-    func scrollViewDidDoubleTap(sender: AnyObject) {
+    func scrollViewDidDoubleTap(sender: UITapGestureRecognizer) {
         containerViews[page].didDoubleTap(sender)
+
+        locationInScrollView = nil
     }
     
     func updatePage() {
