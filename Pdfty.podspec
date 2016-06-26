@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'Pdfty'
-  s.version          = '0.1.0'
+  s.version          = '0.1.1'
   s.summary          = 'A simple pdf utility with horizontal scrolling.'
 
   s.description      = <<-DESC
