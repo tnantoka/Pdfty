@@ -9,7 +9,7 @@
 import CoreGraphics
 
 public class Pdfty {
-    let url: NSURL
+    public let url: NSURL
     
     public var session = NSURLSession.sharedSession()
     public var didCache: Void -> Void = {}
